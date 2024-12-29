@@ -1,12 +1,13 @@
-<html>
+<!DOCTYPE html>
+<html lang="en">
 
 <head>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta property="og:title" content="Nishimiya's Radio Lounge" />
   <meta property="og:description" content="Radio Lounge by Nishimiya's MPD Server." />
   <meta property="og:image"
     content="https://raw.githubusercontent.com/nishimi-ya/nishimi-ya.github.io/main/src/ame.jpg" />
-  <!--Img Src: https://www.pixiv.net/artworks/96353446 (Artist: Andohc)-->
   <meta name="author" content="Nishimiya" />
   <meta name="keywords" content="radio, music, anime, stream, mpd" />
   <meta property="og:url" content="https://radio.nishimiya.my.id" />
@@ -16,102 +17,23 @@
   <link rel="me" href="https://github.com/nishimi-ya" />
   <link rel="me" href="https://layer8.space/@Nishimiya" />
   <link rel="shortcut icon" href="./src/favicon.ico" />
+  <link rel="stylesheet" href="./src/style.css" />
   <title>Nishimiya's Radio Lounge</title>
-  <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-
-    body {
-      font-family: 'IBM Plex Mono', monospace;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      min-height: 100vh;
-      margin: 0;
-      background-color: #252323;
-      color: #f5f5f5;
-      transition: background-color 0.3s, color 0.3s;
-      padding: 20px;
-    }
-
-    .container {
-      width: 100%;
-      max-width: 750px;
-      padding: 15px;
-      text-align: center;
-      margin-top: 50px;
-    }
-
-    h1 {
-      font-weight: 600;
-      font-size: clamp(1.5em, 4vw, 1.8em);
-      margin-bottom: 0.8em;
-      word-wrap: break-word;
-      background: linear-gradient(to bottom, #cbddf2, #fcebd7);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-size: 400% 400%;
-      animation: Groove 42s ease infinite;
-    }
-
-    .song-info {
-      font-size: 1.2em;
-      margin-top: 1em;
-    }
-
-    .song-info p {
-      margin: 0.5em 0;
-    }
-
-    audio {
-      width: 100%;
-      border-radius: 10px;
-      background-color: #3a3a3a;
-      margin-top: 20px;
-    }
-
-    #album-cover {
-      width: 300px;
-      margin-bottom: 15px;
-      /* Add some space below the cover */
-      border-radius: 10px;
-      /* Rounded corners */
-    }
-
-    @keyframes Groove {
-      0% {
-        background-position: 17% 0%;
-      }
-
-      50% {
-        background-position: 84% 100%;
-      }
-
-      100% {
-        background-position: 17% 0%;
-      }
-    }
-
-    @media screen and (max-width: 800px) {
-      audio {
-        width: 100%;
-      }
-
-      #album-cover {
-        width: 250px;
-        /* Make the cover smaller on mobile */
-      }
-    }
-  </style>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
 </head>
 
-<body>
+<body class="dark-mode">
+  <div class="menu">
+    <div class="nav">
+      <a href="https://nishimiya.my.id">Home</a> ·
+      <a href="https://blog.nishimiya.my.id">Blog</a>
+    </div>
+    <button class="theme-toggle" onclick="toggleTheme()">Light Mode</button>
+  </div>
+
   <div class="container" id="info">
     <h1>Nishimiya's Radio Lounge</h1>
-    <img id="album-cover" src="" alt="Album Cover">
+    <img id="album-cover" src="" alt="Album Cover Art">
 
     <div class="song-info">
       <b>
@@ -123,57 +45,52 @@
   </div>
 
   <script type="text/javascript">
-    const streamUrl = "https://mpd.nishimiya.my.id";  // Using the Cloudflare Tunnel domain directly
-    const infoUrl = "/current-song";  // Add this line to define the infoUrl
+    const streamUrl = "https://mpd.nishimiya.my.id";
+    const infoUrl = "/current-song";
 
     function setUrls() {
-      const loc = window.location;
-      const host = loc.hostname;
-      const port = loc.port;
-      const path = dirname(loc.pathname);
-
-      // Set the audio source to the stream URL using the Cloudflare Tunnel domain
       const audio = document.getElementById('audio');
-      audio.src = streamUrl;  // No port, just the domain
+      audio.src = streamUrl;
     }
 
-    // Helper function to extract the directory path
-    function dirname(path) {
-      return path.match(/.*\//);
-    }
-
-    // Fetch song info from the backend (via the `/current-song` route) and update the display
     async function updateSongInfo() {
       const res = await fetch(infoUrl, {cache: "reload"});
       if (res.ok) {
         const data = await res.json();
-        // Update specific elements with the song title and album name
         document.getElementById('song-title').innerHTML = data.title || "Unknown Song";
         document.getElementById('album-name').innerHTML = data.album || "Unknown Album";
-
-        // Update the album cover image
-        const albumCover = document.getElementById('album-cover');
-        albumCover.src = data.albumCoverUrl || 'default-cover.jpg';  // Use a default image if no cover
+        document.getElementById('album-cover').src = data.albumCoverUrl || 'default-cover.jpg';
       } else {
         document.getElementById('song-title').innerHTML = "Error loading song title";
         document.getElementById('album-name').innerHTML = "Error loading album name";
-        document.getElementById('album-cover').src = 'default-cover.jpg';  // Default image on error
+        document.getElementById('album-cover').src = 'default-cover.jpg';
       }
     }
 
-    // Function to update song info with a 20-second delay
     function updateInfo() {
       updateSongInfo();
-      setTimeout(updateInfo, 20000);  // Wait for 20 seconds before fetching again
+      setTimeout(updateInfo, 20000);
     }
 
-    // Refresh the song info when the page loads
     function refresh() {
       setUrls();
-      updateInfo();  // Initial update and then recurring every 20s
+      updateInfo();
     }
 
     window.onload = refresh;
+
+    // Theme Toggle Function
+    function toggleTheme() {
+      document.body.classList.toggle("light-mode");
+      const themeToggleButton = document.querySelector('.theme-toggle');
+      if (document.body.classList.contains("light-mode")) {
+        themeToggleButton.textContent = "Dark Mode";
+        themeToggleButton.classList.remove("light");
+      } else {
+        themeToggleButton.textContent = "Light Mode";
+        themeToggleButton.classList.add("light");
+      }
+    }
   </script>
 </body>
 
