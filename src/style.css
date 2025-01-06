@@ -137,6 +137,8 @@ h1 {
   gap: 10px;
   overflow: hidden;
   flex: 1;
+  max-width: 40%;
+  /* Prevent the song/album name from overlapping the play button */
 }
 
 #mini-album-cover {
@@ -151,11 +153,17 @@ h1 {
   gap: 5px;
   overflow: hidden;
   white-space: nowrap;
+  max-width: 200px;
+  /* Adjust this value as needed */
 }
 
 .mini-song-info p {
   margin: 0;
   font-size: 0.9em;
+  text-overflow: ellipsis;
+  /* Add ellipsis for overflow text */
+  overflow: hidden;
+  /* Hide overflow text */
 }
 
 @keyframes scroll-text {
@@ -202,7 +210,7 @@ h1 {
 }
 
 #duration .material-icons-outlined {
-  font-size: 1em;
+  font-size: 24px;
   /* Match the text size */
   vertical-align: middle;
   /* Align with the text */
@@ -235,7 +243,8 @@ h1 {
 .volume-control {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 5px;
+  /* Reduced gap to keep icons closer */
 }
 
 .volume-control .material-icons-outlined {
@@ -243,16 +252,22 @@ h1 {
   color: var(--text-color);
   display: flex;
   align-items: center;
+  cursor: pointer;
 }
 
 #volume-slider {
-  width: 100px;
-  height: 5px;
-  background: var(--button-border-color);
+  width: 0;
+  height: 3px;
+  background: var(--text-color);
   border-radius: 5px;
   outline: none;
-  opacity: 0.7;
-  transition: opacity 0.2s;
+  opacity: 0;
+  transition: width 0.3s ease, opacity 0.3s ease;
+}
+
+.volume-control:hover #volume-slider {
+  width: 100px;
+  opacity: 1;
 }
 
 #volume-slider:hover {
@@ -262,16 +277,16 @@ h1 {
 #volume-slider::-webkit-slider-thumb {
   -webkit-appearance: none;
   appearance: none;
-  width: 15px;
-  height: 15px;
+  width: 12px;
+  height: 12px;
   background: var(--text-color);
   border-radius: 50%;
   cursor: pointer;
 }
 
 #volume-slider::-moz-range-thumb {
-  width: 15px;
-  height: 15px;
+  width: 12px;
+  height: 12px;
   background: var(--text-color);
   border-radius: 50%;
   cursor: pointer;
@@ -284,7 +299,6 @@ h1 {
   left: 0;
   right: 0;
   background-color: var(--background-color-darker);
-  /* Slightly darker background */
   padding: 20px;
   transition: bottom 0.3s ease-in-out;
   z-index: 1000;
@@ -332,40 +346,46 @@ h1 {
   font-size: 1.1em;
 }
 
+#up-next-list li {
+  padding: 10px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+#up-next-list li:last-child {
+  border-bottom: none;
+}
+
 /* Mobile Styles */
 @media screen and (max-width: 800px) {
-  #album-cover {
-    width: 200px;
-  }
-
-  h1 {
-    font-size: clamp(1.3rem, 4vw, 1.5em);
-  }
-
-  .song-info {
-    font-size: 1em;
-  }
-
-  .up-next {
-    font-size: 0.9em;
-    max-width: 100%;
-    padding: 15px;
+  .audio-player {
+    padding: 10px;
+    /* Reduce padding to minimize gaps */
   }
 
   .player-right {
     display: none;
+    /* Hide player-right in mobile */
+  }
+
+  .player-left {
+    flex: 1;
+    max-width: 50%;
+    /* Constrain the player-left section */
+    justify-content: flex-start;
   }
 
   .player-center {
     position: static;
     transform: none;
     flex: 1;
-    justify-content: center;
+    justify-content: flex-end;
+    /* Align the playlist icon to the right */
+    gap: 10px;
   }
 
-  .player-left {
-    flex: 1;
-    justify-content: flex-start;
+  .mini-song-info {
+    max-width: 150px;
+    /* Adjust for mobile */
   }
 
   .mini-song-info p {
@@ -378,6 +398,16 @@ h1 {
 
   .queue-toggle-btn.mobile-only {
     display: block;
+    margin-right: 0;
+  }
+
+  #up-next-list li {
+    padding: 10px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  #up-next-list li:last-child {
+    border-bottom: none;
   }
 }
 
@@ -391,56 +421,40 @@ h1 {
     display: block;
   }
 
-  /* Updated Desktop Queue Pop-Up */
   .up-next {
     width: 300px;
-    /* Fixed width for the pop-up */
     left: auto;
-    /* Reset left positioning */
     right: 20px;
-    /* Position from the right edge */
     bottom: -100%;
-    /* Start off-screen */
     border-radius: 10px;
-    /* Rounded corners */
     padding: 15px;
-    /* Reduce padding */
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-    /* Add shadow for depth */
   }
 
   .up-next.show {
     bottom: 60px;
-    /* Position above the playlist icon */
   }
 
   .up-next-header {
     margin-bottom: 10px;
-    /* Reduce margin */
   }
 
   .up-next-header h2 {
     font-size: 1.2em;
-    /* Smaller header */
   }
 
   #up-next-list {
     max-height: 300px;
-    /* Limit height for scrolling */
     overflow-y: auto;
-    /* Enable vertical scrolling */
   }
 
   #up-next-list li {
     padding: 10px 0;
-    /* Add spacing between items */
     border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-    /* Add horizontal line */
   }
 
   #up-next-list li:last-child {
     border-bottom: none;
-    /* Remove line for the last item */
   }
 }
 
