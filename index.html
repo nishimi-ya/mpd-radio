@@ -16,8 +16,9 @@
   <link rel="me" href="https://libre.fm/user/nishimiya" />
   <link rel="me" href="https://github.com/nishimi-ya" />
   <link rel="me" href="https://layer8.space/@Nishimiya" />
-  <link rel="shortcut icon" href="./src/favicon.ico" />
-  <link rel="stylesheet" href="./src/style.css" />
+  <link rel="shortcut icon" href="./src/public/favicon.ico" />
+  <link rel="stylesheet" href="./src/style.css?v=1.0.4" />
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet">
   <title>Nishimiya's Radio Lounge</title>
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
 </head>
@@ -33,7 +34,7 @@
 
   <div class="container" id="info">
     <h1>Nishimiya's Radio Lounge</h1>
-    <img id="album-cover" src="" alt="Album Cover Art">
+    <img id="album-cover" src="./src/fallback.png" alt="Album Cover Art">
 
     <div class="song-info">
       <b>
@@ -41,43 +42,176 @@
       </b>
       <p id="album-name">Loading album name...</p>
     </div>
-    <audio controls id="audio"></audio>
+  </div>
+
+  <!-- Up Next Section -->
+  <div class="up-next" id="up-next-container">
+    <div class="up-next-header">
+      <h2>Up Next</h2>
+      <button class="close-up-next" onclick="toggleUpNext()">
+        <span class="material-icons-outlined">close</span>
+      </button>
+    </div>
+    <ul id="up-next-list">Loading queue...</ul>
+  </div>
+
+  <!-- Custom Audio Player -->
+  <div class="audio-player">
+    <div class="player-left">
+      <img id="mini-album-cover" src="./src/fallback.png" alt="Album Cover Art">
+      <div class="mini-song-info">
+        <p id="mini-song-title">Loading song title...</p>
+        <p id="mini-album-name">Loading album name...</p>
+      </div>
+    </div>
+    <div class="player-center">
+      <button id="play-pause-button" class="control-button">
+        <span class="material-icons-outlined">play_arrow</span>
+      </button>
+      <span id="current-time">0:00</span> / <span id="duration"><span
+          class="material-icons-outlined">all_inclusive</span></span>
+      <!-- Playlist icon for mobile -->
+      <button class="queue-toggle-btn mobile-only" onclick="toggleUpNext()">
+        <span class="material-icons-outlined">queue_music</span>
+      </button>
+    </div>
+    <div class="player-right">
+      <div class="volume-control">
+        <span class="material-icons-outlined">volume_up</span>
+        <input type="range" id="volume-slider" min="0" max="1" step="0.01" value="1">
+      </div>
+      <!-- Playlist icon for desktop -->
+      <button class="queue-toggle-btn desktop-only" onclick="toggleUpNext()">
+        <span class="material-icons-outlined">queue_music</span>
+      </button>
+    </div>
   </div>
 
   <script type="text/javascript">
-    const streamUrl = "https://mpd.nishimiya.my.id";
     const infoUrl = "/current-song";
+    const queueUrl = "/queue";
+    const audioElement = new Audio("https://mpd.nishimiya.my.id");
+    const playPauseButton = document.getElementById('play-pause-button');
+    const currentTime = document.getElementById('current-time');
+    const duration = document.getElementById('duration');
+    const volumeSlider = document.getElementById('volume-slider');
+    const miniAlbumCover = document.getElementById('mini-album-cover');
+    const miniSongTitle = document.getElementById('mini-song-title');
+    const miniAlbumName = document.getElementById('mini-album-name');
 
-    function setUrls() {
-      const audio = document.getElementById('audio');
-      audio.src = streamUrl;
+    let isPlaying = false;
+
+    // Play/Pause functionality
+    playPauseButton.addEventListener('click', () => {
+      if (audioElement.paused) {
+        audioElement.play();
+        playPauseButton.innerHTML = '<span class="material-icons-outlined">pause</span>';
+      } else {
+        audioElement.pause();
+        playPauseButton.innerHTML = '<span class="material-icons-outlined">play_arrow</span>';
+      }
+    });
+
+    // Update current time
+    audioElement.addEventListener('timeupdate', () => {
+      currentTime.textContent = formatTime(audioElement.currentTime);
+    });
+
+    // Volume control
+    volumeSlider.addEventListener('input', () => {
+      audioElement.volume = volumeSlider.value;
+    });
+
+    // Format time (MM:SS)
+    function formatTime(time) {
+      const minutes = Math.floor(time / 60);
+      const seconds = Math.floor(time % 60);
+      return `${minutes}:${seconds.toString().padStart(2, '0')}`;
     }
 
-    async function updateSongInfo() {
-      const res = await fetch(infoUrl, {cache: "reload"});
-      if (res.ok) {
-        const data = await res.json();
-        document.getElementById('song-title').innerHTML = data.title || "Unknown Song";
-        document.getElementById('album-name').innerHTML = data.album || "Unknown Album";
-        document.getElementById('album-cover').src = data.albumCoverUrl || 'default-cover.jpg';
+    // Check if text overflows its container
+    function isTextOverflowing(element) {
+      return element.scrollWidth > element.clientWidth;
+    }
+
+    // Apply scrolling animation if text overflows
+    function handleTextOverflow(element) {
+      if (isTextOverflowing(element)) {
+        element.style.animation = 'scroll-text 15s linear infinite';
       } else {
-        document.getElementById('song-title').innerHTML = "Error loading song title";
-        document.getElementById('album-name').innerHTML = "Error loading album name";
-        document.getElementById('album-cover').src = 'default-cover.jpg';
+        element.style.animation = 'none';
       }
     }
 
-    function updateInfo() {
+    // Update play/pause button state based on audio element state
+    function updatePlayPauseButton() {
+      if (audioElement.paused) {
+        playPauseButton.innerHTML = '<span class="material-icons-outlined">play_arrow</span>';
+      } else {
+        playPauseButton.innerHTML = '<span class="material-icons-outlined">pause</span>';
+      }
+    }
+
+    async function updateSongInfo() {
+      const res = await fetch(infoUrl);
+      if (res.ok) {
+        const data = await res.json();
+        document.getElementById('song-title').innerText = data.title || "Unknown Song";
+        document.getElementById('album-name').innerText = data.album || "Unknown Album";
+        document.getElementById('album-cover').src = data.albumCoverUrl || './src/fallback.png';
+        miniSongTitle.innerText = data.title || "Unknown Song";
+        miniAlbumName.innerText = data.album || "Unknown Album";
+        miniAlbumCover.src = data.albumCoverUrl || './src/fallback.png';
+
+        // Handle text overflow for mini song title and album name
+        handleTextOverflow(miniSongTitle);
+        handleTextOverflow(miniAlbumName);
+
+        // Update play/pause button state based on fetched data
+        if (data.isPlaying) {
+          audioElement.play();
+        } else {
+          audioElement.pause();
+        }
+        updatePlayPauseButton();
+      } else {
+        document.getElementById('song-title').innerText = "Error loading song";
+      }
+    }
+
+    async function updateQueue() {
+      try {
+        const res = await fetch(queueUrl);
+        if (res.ok) {
+          const queue = await res.json();
+          const upNextList = document.getElementById('up-next-list');
+          upNextList.innerHTML = '';
+          queue.forEach((item) => {
+            const li = document.createElement('li');
+            li.innerText = item; // Each item is already formatted as "artist - title"
+            upNextList.appendChild(li);
+          });
+        } else {
+          document.getElementById('up-next-list').innerText = "Error loading queue";
+        }
+      } catch (error) {
+        console.error('Error updating queue:', error);
+        document.getElementById('up-next-list').innerText = "Error loading queue";
+      }
+    }
+
+    // Toggle Up Next Section
+    function toggleUpNext() {
+      const upNextContainer = document.getElementById('up-next-container');
+      upNextContainer.classList.toggle('show');
+    }
+
+    window.onload = () => {
       updateSongInfo();
-      setTimeout(updateInfo, 20000);
+      updateQueue();
+      setInterval(updateSongInfo, 20000);
+      setInterval(updateQueue, 20000);
     }
-
-    function refresh() {
-      setUrls();
-      updateInfo();
-    }
-
-    window.onload = refresh;
 
     // Theme Toggle Function
     function toggleTheme() {
@@ -85,10 +219,8 @@
       const themeToggleButton = document.querySelector('.theme-toggle');
       if (document.body.classList.contains("light-mode")) {
         themeToggleButton.textContent = "Dark Mode";
-        themeToggleButton.classList.remove("light");
       } else {
         themeToggleButton.textContent = "Light Mode";
-        themeToggleButton.classList.add("light");
       }
     }
   </script>
