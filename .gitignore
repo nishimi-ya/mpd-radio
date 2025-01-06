@@ -38,7 +38,6 @@ jspm_packages/
 
 # Gatsby files
 .cache/
-public/
 
 # Gridsome files
 .cache/
